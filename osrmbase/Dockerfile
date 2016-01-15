@@ -31,12 +31,9 @@ RUN mkdir -p /osrm-src \
 WORKDIR /osrm-build
 
 ENV aaa bbb
-RUN git clone https://github.com/DennisOSRM/Project-OSRM.git /osrm-src \
+RUN git clone https://github.com/Project-OSRM/osrm-backend.git /osrm-src \
  && cmake /osrm-src \
  && make \
- && mv /osrm-src/profiles/foot.lua profile.lua \
- && mv /osrm-src/profiles/lib/ lib \
- && echo "disk=/tmp/stxxl,25000,syscall" > .stxxl \
  && rm -rf /osrm-src
  
 # Cleanup --------------------------------
@@ -44,10 +41,3 @@ RUN git clone https://github.com/DennisOSRM/Project-OSRM.git /osrm-src \
 RUN apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Publish --------------------------------
-
-COPY docker-entrypoint.sh /
-RUN chmod +x /docker-entrypoint.sh
-ENTRYPOINT ["/docker-entrypoint.sh"]
-
-EXPOSE 5000
