@@ -1,53 +1,18 @@
-FROM ubuntu:14.04
+FROM osrmbase
 MAINTAINER Jonathan Mayer <jonathan.mayer@ecountability.co.uk>
 
 # Let the container know that there is no TTY
 ENV DEBIAN_FRONTEND noninteractive
 
-# Install necessary packages for proper system state
-RUN apt-get -y update && apt-get install -y \
-    build-essential \
-    cmake \
-    curl \
-    git \
-    libboost-all-dev \
-    libbz2-dev \
-    libstxxl-dev \
-    libstxxl-doc \
-    libstxxl1 \
-    libtbb-dev \
-    libxml2-dev \
-    libzip-dev \
-    lua5.1 \
-    liblua5.1-0-dev \
-    libluabind-dev \
-    libluajit-5.1-dev \
-    pkg-config
-    
-RUN mkdir -p /osrm-src \
- && mkdir -p /osrm-build \
- && mkdir -p /osrm-data
- 
-WORKDIR /osrm-build
+RUN mkdir -p /opt/osrm/etc /opt/osrm/bin
 
-ENV aaa bbb
-RUN git clone https://github.com/DennisOSRM/Project-OSRM.git /osrm-src \
- && cmake /osrm-src \
- && make \
- && mv /osrm-src/profiles/foot.lua profile.lua \
- && mv /osrm-src/profiles/lib/ lib \
- && echo "disk=/tmp/stxxl,25000,syscall" > .stxxl \
- && rm -rf /osrm-src
- 
-# Cleanup --------------------------------
+ADD sources/ /opt/osrm/bin/
 
-RUN apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
-# Publish --------------------------------
-
-COPY docker-entrypoint.sh /
-RUN chmod +x /docker-entrypoint.sh
-ENTRYPOINT ["/docker-entrypoint.sh"]
+VOLUME ["/opt/osrm/data", "opt/osrm/etc", "opt/osrm/stxxl", "opt/osrm/profiles"]
 
 EXPOSE 5000
+
+ENTRYPOINT ["/opt/osrm/bin/boot"]
+
+CMD ["usr/bin/osrm-routed", "-c", "/opt/osrm/etc/osrm.conf", "/opt/osrm/data/map.osrm"]
+
